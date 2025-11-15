@@ -1,165 +1,92 @@
 /*
-Program name: Personal_Computer_Inventory.cpp
-Author: Judith Nnaji
+Program name: Grade Statistics.cpp
+Name: Judith Nnaji
 Date: 11/14/2025
-Purpose: This program tracks personal computer inventory for a small company.
+Purpose: This program collects 16 quiz scores (0–15) from the user and stores them in an STL array.
 */
 
 #include <iostream>
-#include <string>
-#include <vector>
-#include <stdexcept>
+#include <array>
+#include <numeric>
 #include <iomanip>
 
 using namespace std;
 
-class PersonalComputer {
-private:
-    string manufacturer, formFactor, serialNumber, processor;
-    int RAM;
-    string storageType, storageSize;
+const int NUM_MODULES = 16;
 
-    // Helper function to convert a string to lowercase 
-    string toLowerCase(string str) {
-        for (size_t i = 0; i < str.length(); ++i) {
-            if (str[i] >= 'A' && str[i] <= 'Z')
-                str[i] = str[i] + 32;
-        }
-        return str;
-    }
-
-public:
-    // Constructor with validation
-    PersonalComputer(string m, string f, string s, string p, int r, string st, string ss) {
-        if (m.empty() || f.empty() || s.empty() || p.empty() || st.empty() || ss.empty())
-            throw invalid_argument("All fields must be filled in.");
-
-        // Validate RAM
-        if (r != 4 && r != 6 && r != 8 && r != 16 && r != 32 && r != 64)
-            throw invalid_argument("Invalid RAM size. Must be 4, 6, 8, 16, 32, or 64 GB.");
-
-        // Convert inputs to lowercase for validation
-        string fLower = toLowerCase(f);
-        string stLower = toLowerCase(st);
-        string ssLower = toLowerCase(ss);
-
-        // Validate form factor
-        if (fLower != "laptop" && fLower != "desktop")
-            throw invalid_argument("Invalid form factor. Must be 'Laptop' or 'Desktop'.");
-
-        // Validate storage type
-        if (stLower != "hdd" && stLower != "ssd" && stLower != "ufs")
-            throw invalid_argument("Invalid storage type. Must be HDD, SSD, or UFS.");
-
-        // Validate storage size
-        if (ssLower != "128gb" && ssLower != "256gb" && ssLower != "512gb" &&
-            ssLower != "1tb" && ssLower != "2tb")
-            throw invalid_argument("Invalid storage size. Must be 128GB, 256GB, 512GB, 1TB, or 2TB.");
-
-        // Assign values 
-        manufacturer = m;
-        formFactor = f;
-        serialNumber = s;
-        processor = p;
-        RAM = r;
-        storageType = st;
-        storageSize = ss;
-    }
-
-    // Accessor methods
-    string getManufacturer() const { return manufacturer; }
-    string getFormFactor() const { return formFactor; }
-    string getSerialNumber() const { return serialNumber; }
-    string getProcessor() const { return processor; }
-    int getRAM() const { return RAM; }
-    string getStorageType() const { return storageType; }
-    string getStorageSize() const { return storageSize; }
-
-    // Mutator methods
-    void setRAM(int newRAM) {
-        if (newRAM != 4 && newRAM != 6 && newRAM != 8 && newRAM != 16 && newRAM != 32 && newRAM != 64)
-            throw invalid_argument("Invalid RAM size. Must be 4, 6, 8, 16, 32, or 64 GB.");
-        RAM = newRAM;
-    }
-
-    void setStorage(string type, string size) {
-        string typeLower = toLowerCase(type);
-        string sizeLower = toLowerCase(size);
-
-        if (typeLower != "hdd" && typeLower != "ssd" && typeLower != "ufs")
-            throw invalid_argument("Invalid storage type. Must be HDD, SSD, or UFS.");
-        if (sizeLower != "128gb" && sizeLower != "256gb" && sizeLower != "512gb" &&
-            sizeLower != "1tb" && sizeLower != "2tb")
-            throw invalid_argument("Invalid storage size. Must be 128GB, 256GB, 512GB, 1TB, or 2TB.");
-
-        storageType = type;
-        storageSize = size;
-    }
-
-    // String representation
-    string toString() const {
-        return manufacturer + " " + formFactor + " | SN: " + serialNumber +
-            " | " + processor + " | " + to_string(RAM) + "GB RAM | " +
-            storageType + " " + storageSize;
-    }
-};
+// Function prototypes
+void getData(array<int, NUM_MODULES>& scores);
+int highScore(const array<int, NUM_MODULES>& scores);
+int lowScore(const array<int, NUM_MODULES>& scores);
+double calculateAverage(const array<int, NUM_MODULES>& scores);
+void displayReport(const array<int, NUM_MODULES>& scores, int highModule, int lowModule, double average);
 
 int main() {
-    vector<PersonalComputer> inventory;
-    char cont = 'y';
+    array<int, NUM_MODULES> quizScores;
 
-    cout << "=== Personal Computer Inventory System ===\n";
+    getData(quizScores);
 
-    while (tolower(cont) == 'y') {
-        bool valid = false;
+    int highModule = highScore(quizScores);
+    int lowModule = lowScore(quizScores);
+    double average = calculateAverage(quizScores);
 
-        while (!valid) {
-            try {
-                string m, f, s, p, st, ss;
-                int r;
+    displayReport(quizScores, highModule, lowModule, average);
 
-                cout << "\nManufacturer: ";
-                getline(cin >> ws, m);
-                cout << "Form Factor (Laptop/Desktop): ";
-                getline(cin, f);
-                cout << "Serial Number: ";
-                getline(cin, s);
-                cout << "Processor (e.g., i3, i5, i7, Ryzen 5): ";
-                getline(cin, p);
-                cout << "RAM (4, 6, 8, 16, 32, 64): ";
-                cin >> r;
-                cout << "Storage Type (HDD/SSD/UFS): ";
-                getline(cin >> ws, st);
-                cout << "Storage Size (128GB, 256GB, 512GB, 1TB, 2TB): ";
-                getline(cin, ss);
-
-                // Create the PC object - this validates ALL fields
-                PersonalComputer pc(m, f, s, p, r, st, ss);
-                inventory.push_back(pc);
-
-                cout << "\nAdded: " << pc.toString() << endl;
-                cout << "Total Computers in Inventory: " << inventory.size() << endl;
-                valid = true;
-            }
-            catch (const invalid_argument& e) {
-                cerr << "Error: " << e.what() << endl;
-                cout << "Please re-enter this computer's details.\n";
-                // Clear any potential errors in cin
-                cin.clear();
-                cin.ignore(10000, '\n');
-            }
-        }
-
-        cout << "\nAdd another? (Y/N): ";
-        cin >> cont;
-        cin.ignore(10000, '\n');
-    }
-
-    cout << "\n=== Complete Inventory ===\n";
-    for (size_t i = 0; i < inventory.size(); ++i) {
-        cout << setw(2) << i + 1 << ". " << inventory[i].toString() << endl;
-    }
-
-    cout << "\nProgram ended successfully.\n";
     return 0;
 }
+
+void getData(array<int, NUM_MODULES>& scores) {
+    cout << "Enter quiz scores for " << NUM_MODULES << " modules (0–15):\n";
+    for (size_t i = 0; i < scores.size(); ++i) {
+        do {
+            cout << "Module " << (i + 1) << ": ";
+            cin >> scores[i];
+
+            if (scores[i] < 0 || scores[i] > 15) {
+                cout << "Invalid score! Please enter a value between 0 and 15.\n";
+            }
+
+        } while (scores[i] < 0 || scores[i] > 15);
+    }
+}
+
+int highScore(const array<int, NUM_MODULES>& scores) {
+    int maxIndex = 0;
+    for (size_t i = 1; i < scores.size(); ++i)
+        if (scores[i] > scores[maxIndex])
+            maxIndex = i;
+    return maxIndex;
+}
+
+int lowScore(const array<int, NUM_MODULES>& scores) {
+    int minIndex = 0;
+    for (size_t i = 1; i < scores.size(); ++i)
+        if (scores[i] < scores[minIndex])
+            minIndex = i;
+    return minIndex;
+}
+
+double calculateAverage(const array<int, NUM_MODULES>& scores) {
+    double sum = accumulate(scores.begin(), scores.end(), 0.0);
+    return sum / scores.size();
+}
+
+void displayReport(const array<int, NUM_MODULES>& scores, int highModule, int lowModule, double average) {
+    cout << "\nFall 2025 Quiz Grades:\n\n";
+    for (size_t i = 0; i < scores.size(); ++i)
+        cout << "            Module " << setw(2) << (i + 1)
+        << ": " << setw(2) << scores[i] << endl;
+
+    cout << fixed << setprecision(2);
+    cout << "\nAverage Grade: " << average << endl;
+    cout << "Your lowest score was in Module " << (lowModule + 1)
+        << " with " << scores[lowModule] << ".\n";
+    cout << "Your highest score was in Module " << (highModule + 1)
+        << " with " << scores[highModule] << ".\n";
+  
+}
+
+
+
+
+
